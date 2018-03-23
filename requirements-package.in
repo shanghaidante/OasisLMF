@@ -12,3 +12,4 @@ argparsetree
 python-interface
 pandas
 lxml
+cookiecutter
