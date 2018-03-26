@@ -1,0 +1,1 @@
+{{cookiecutter.organization_slug}},{{cookiecutter.model_identifier}},{{cookiecutter.model_version}}

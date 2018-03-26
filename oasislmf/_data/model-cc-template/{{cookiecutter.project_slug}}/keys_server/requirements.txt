@@ -1,0 +1,2 @@
+oasislmf==1.0.0
+pandas==0.19.2

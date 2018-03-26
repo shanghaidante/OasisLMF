@@ -4,9 +4,12 @@ import io
 import json
 import os
 import subprocess
+import tempfile
 
 from argparse import RawDescriptionHelpFormatter
 
+from cookiecutter.generate import generate_context, generate_files
+from cookiecutter.prompt import prompt_for_config
 from pathlib2 import Path
 
 from ..exposures.manager import OasisExposuresManager
@@ -16,7 +19,7 @@ from ..model_execution.bin import create_binary_files, prepare_model_run_directo
 from ..utils.exceptions import OasisException
 from ..utils.values import get_utctimestamp
 from ..keys.lookup import OasisKeysLookupFactory
-from .cleaners import PathCleaner, as_path
+from .cleaners import PathCleaner, as_path, slug
 from .base import OasisBaseCommand, InputValues
 
 
@@ -468,10 +471,123 @@ class RunCmd(OasisBaseCommand):
         gen_losses_cmd.action(args)
 
 
+class CreateOrganisationCmd(OasisBaseCommand):
+    def add_args(self, parser):
+        parser.add_argument('organization_name', help='The name of the organization to create')
+        parser.add_argument('model_name', help='The name of the first model to create')
+        parser.add_argument(
+            '--organization-slug', default=None,
+            help='The slug to use for the organization (defaults to a slugified version of the organization name)'
+        )
+        parser.add_argument(
+            '--model-slug', default=None,
+            help='The slug to use for the model (defaults to a slugified version of the model name)'
+        )
+        parser.add_argument('--model-description', default=None, help='Short description of the model')
+        parser.add_argument('--model-maintainer', default=None, help='The name of the primary model maintainer')
+        parser.add_argument('--model-maintainer-email', default=None, help='The email of the primary model maintainer')
+        parser.add_argument('--model-identifier', default=None, help='Short identifier for the model', type=slug)
+        parser.add_argument('--model-version', default=None, help='The model version')
+
+    def run_cookiecutter(self, args, out_path):
+        args.organization_slug = args.organization_slug or slug(args.organization_name)
+        args.model_slug = args.model_slug or slug(args.model_name)
+        args.model_identifier = args.model_identifier or ''.join(part[0].upper() for part in args.model_name.split())
+
+        template_dir = Path(__file__).parent.parent.joinpath('_data', 'model-cc-template')
+
+        context_file = template_dir.joinpath('cookiecutter.json')
+
+        args_context = {
+            'organization': args.organization_name,
+            'organization_slug': args.organization_slug,
+            'project_name': args.model_name,
+            'project_slug': args.model_slug,
+            'model_identifier': args.model_identifier,
+        }
+        defaults = {}
+
+        if args.model_description:
+            args_context['project_short_description'] = args.model_description
+
+        if args.model_description:
+            args_context['project_maintainer'] = args.model_maintainer
+        else:
+            res = subprocess.run(['git', 'config', '--global', 'user.name'], stdout=subprocess.PIPE)
+            uname = res.stdout.strip().decode()
+            if res and uname:
+                defaults['project_maintainer'] = uname
+
+        if args.model_description:
+            args_context['project_maintainer_email'] = args.model_maintainer_email
+        else:
+            res = subprocess.run(['git', 'config', '--global', 'user.email'], stdout=subprocess.PIPE)
+            email = res.stdout.strip().decode()
+            if res and email:
+                defaults['project_maintainer_email'] = email
+
+        if args.model_version:
+            args_context['model_version'] = args.model_version
+
+        # setup the context file stripping any defined values
+        with open(str(context_file)) as f:
+            defaults.update({
+                k: v for k, v in json.load(f).items() if k not in args_context and k not in defaults
+            })
+
+        with tempfile.NamedTemporaryFile('w') as cc_conf:
+            json.dump(defaults, cc_conf)
+            cc_conf.flush()
+
+            context = {
+                'cookiecutter': generate_context(
+                    context_file=cc_conf.name,
+                    extra_context=args_context,
+                )[os.path.basename(cc_conf.name)]
+            }
+            context['cookiecutter'].update(prompt_for_config(context))
+            context['cookiecutter'].update(args_context)
+            context['cookiecutter']['_template'] = str(template_dir)
+
+        generate_files(
+            repo_dir=str(template_dir),
+            context=context,
+            overwrite_if_exists=False,
+            output_dir=str(out_path)
+        )
+
+        return context['cookiecutter']
+
+    def setup_git(self, cc_context, out_path):
+        pwd = os.getcwd()
+        try:
+            os.chdir(str(out_path))
+            subprocess.check_call(['git', 'init'])
+            subprocess.check_call(['git', 'add', '.'])
+            subprocess.check_call(['git', 'commit', '-m', 'Post-project creation initialisation'])
+
+            subprocess.check_call(['git', 'config', 'user.name', cc_context['project_maintainer']])
+            subprocess.check_call(['git', 'config', 'user.email', cc_context['project_maintainer_email']])
+        finally:
+            os.chdir(pwd)
+
+    def action(self, args):
+        organization_path = Path(slug(args.organization_name))
+        if organization_path.exists():
+            self.logger.error('The supplier at {} already exists'.format(organization_path))
+            return 1
+
+        organization_path.mkdir(parents=True)
+
+        cc_context = self.run_cookiecutter(args, organization_path)
+        self.setup_git(cc_context, organization_path)
+
+
 class ModelsCmd(OasisBaseCommand):
     sub_commands = {
         'generate-keys': GenerateKeysCmd,
         'generate-oasis-files': GenerateOasisFilesCmd,
         'generate-losses': GenerateLossesCmd,
         'run': RunCmd,
+        'create-organization': CreateOrganisationCmd,
     }

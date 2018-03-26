@@ -1,5 +1,7 @@
 import os
 
+import re
+
 from oasislmf.utils.exceptions import OasisException
 
 
@@ -49,3 +51,11 @@ class PathCleaner(object):
 
     def __call__(self, value):
         return as_path(value, self.name, preexists=self.preexists)
+
+
+def slug(s):
+    _slug_ends_re = re.compile(r'^[^0-9a-zA-Z-]+|[^0-9a-zA-Z-]+$')
+    _slug_inner_re = re.compile(r'[^0-9a-zA-Z-]+')
+
+    stripped = _slug_ends_re.sub('', s)
+    return _slug_inner_re.sub('-', stripped).lower()
