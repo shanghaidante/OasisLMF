@@ -488,6 +488,7 @@ class CreateOrganisationCmd(OasisBaseCommand):
         parser.add_argument('--model-maintainer-email', default=None, help='The email of the primary model maintainer')
         parser.add_argument('--model-identifier', default=None, help='Short identifier for the model', type=slug)
         parser.add_argument('--model-version', default=None, help='The model version')
+        parser.add_argument('--model-type', default=None, help='The type of model to use model version', choices=['Earthquake', 'Flood', 'Windstorm'])
 
     def run_cookiecutter(self, args, out_path):
         args.organization_slug = args.organization_slug or slug(args.organization_name)
@@ -529,6 +530,9 @@ class CreateOrganisationCmd(OasisBaseCommand):
         if args.model_version:
             args_context['model_version'] = args.model_version
 
+        if args.model_type:
+            args_context['model_type'] = args.model_type
+
         # setup the context file stripping any defined values
         with open(str(context_file)) as f:
             defaults.update({
@@ -554,6 +558,11 @@ class CreateOrganisationCmd(OasisBaseCommand):
             context=context,
             overwrite_if_exists=False,
             output_dir=str(out_path)
+        )
+
+        self.logger.info(
+            'You now need to add your model specific data to the model and edit "canonical-profile.json", '
+            '"analysis-settings.json" and "oasislmf.json" files to match your specific model.'
         )
 
         return context['cookiecutter']

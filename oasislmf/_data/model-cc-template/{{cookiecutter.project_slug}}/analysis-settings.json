@@ -1,0 +1,35 @@
+{
+	"analysis_settings": {
+		"analysis_tag": 13,
+ 		"exposure_location": "L:",
+ 		"gul_output": true,
+ 		"gul_summaries": [
+ 			{
+   				"id": 1,
+ 				"aalcalc": true,
+   				"eltcalc": true,
+   				"lec_output": true,
+   				"leccalc": {
+   					"outputs": {
+   						"full_uncertainty_aep": true,
+     					"full_uncertainty_oep": true
+     				},
+    			"return_period_file": true
+    			}
+    		}
+    	],
+		 "gul_threshold": 0,
+		 "il_summaries": [],
+		 "model_settings": {
+		 	"event_set": "P",
+			{% if cookiecutter.model_type == "Windstorm" %}"peril_wind": true{% endif %}
+			{% if cookiecutter.model_type == "Flood" %}"peril_flood": true{% endif %}
+			{% if cookiecutter.model_type == "Earthquake" %}"peril_earthquake": true{% endif %}
+		 },
+		 "model_version_id": "{{cookiecutter.model_identifier}}",
+		 "module_supplier_id": "{{cookiecutter.organization_slug}}",
+		 "number_of_samples": 10,
+		 "prog_id": 12,
+		 "source_tag": "{{cookiecutter.model_slug}}"
+	}
+}
