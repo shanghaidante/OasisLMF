@@ -510,7 +510,7 @@ class CreateOrganisationCmd(OasisBaseCommand):
         if args.model_description:
             args_context['project_short_description'] = args.model_description
 
-        if args.model_description:
+        if args.model_maintainer:
             args_context['project_maintainer'] = args.model_maintainer
         else:
             res = subprocess.run(['git', 'config', '--global', 'user.name'], stdout=subprocess.PIPE)
@@ -518,7 +518,7 @@ class CreateOrganisationCmd(OasisBaseCommand):
             if res and uname:
                 defaults['project_maintainer'] = uname
 
-        if args.model_description:
+        if args.model_maintainer_email:
             args_context['project_maintainer_email'] = args.model_maintainer_email
         else:
             res = subprocess.run(['git', 'config', '--global', 'user.email'], stdout=subprocess.PIPE)

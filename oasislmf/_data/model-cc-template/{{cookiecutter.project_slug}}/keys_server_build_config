@@ -44,15 +44,15 @@
 #                                      to be found in the model subdirectory within
 #                                      keys data directory
 
-export SUPPLIER={{cookiecutter.organization.replace(' ', '')}}
+export SUPPLIER={{cookiecutter.organization_slug}}
 export LOCAL_SUPPLIER_HOME="$(pwd)"
-export MODEL_NAME={{cookiecutter.model_identifier.replace(' ', '').upper()}}
+export MODEL_NAME={{cookiecutter.model_identifier}}
 export MODEL_VERSION={{cookiecutter.model_version}}
 
-export DOCKERFILE="${LOCAL_SUPPLIER_HOME}"/Dockerfile.{{cookiecutter.organization.replace(' ', '').lower()}}_{{cookiecutter.model_identifier.replace(' ', '').lower()}}_keys_server
+export DOCKERFILE="${LOCAL_SUPPLIER_HOME}"/Dockerfile.keys_server
 
-export BUILD_IMAGE_NAME={{cookiecutter.organization.replace(' ', '').lower()}}_{{cookiecutter.model_identifier.replace(' ', '').lower()}}_keys_server_test
-export BUILD_CONTAINER_NAME={{cookiecutter.organization.replace(' ', '').lower()}}_{{cookiecutter.model_identifier.replace(' ', '').lower()}}_keys_server_test
+export BUILD_IMAGE_NAME={{cookiecutter.organization_slug}}_{{cookiecutter.model_identifier}}_keys_server_test
+export BUILD_CONTAINER_NAME={{cookiecutter.organization_slug}}_{{cookiecutter.model_identifier}}_keys_server_test
 
-export LOCAL_KEYS_DATADIR="${LOCAL_SUPPLIER_HOME}"/keys_data/"${MODEL_NAME}"
+export LOCAL_KEYS_DATADIR="${LOCAL_SUPPLIER_HOME}"/keys_data/
 export LOCAL_TEST_MODEL_LOCATION_FILE=''
