@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import six
+
 __all__ = [
     'OasisKeysLookupFactory',
     'OasisBaseKeysLookup',
@@ -141,11 +143,14 @@ class OasisKeysLookupFactory(object):
         return lookup_package
 
     @classmethod
-    def get_lookup_class_instance(cls, lookup_package, keys_data_path, model_info):
+    def get_lookup_class_instance(cls, lookup_package, keys_data_path, model_info, lookup_class_name='KeysLookup'):
         """
         Get the keys lookup class instance.
         """
-        klc = getattr(lookup_package, '{}KeysLookup'.format(model_info['model_id']))
+        if isinstance(lookup_package, six.string_types):
+            lookup_package = cls.get_lookup_package(lookup_package)
+
+        klc = getattr(lookup_package, lookup_class_name)
 
         return klc(
             keys_data_directory=keys_data_path,

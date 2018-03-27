@@ -8,5 +8,5 @@
   "organization_slug": "{{cookiecutter.organization.replace(' ', '-').lower()}}",
   "model_identifier": "{{cookiecutter.project_slug}}",
   "model_version": "0.0.0.1",
-  "model_type": ["Earthquake", "Flood", "Windstorm", null]
+  "model_type": [null, "Earthquake", "Flood", "Windstorm"]
 }

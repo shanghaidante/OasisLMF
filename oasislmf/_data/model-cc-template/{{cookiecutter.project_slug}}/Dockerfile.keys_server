@@ -20,13 +20,10 @@ RUN mkdir /var/oasis/keys_data && \
     chmod -R 744 /var/oasis/keys_data
 COPY ./keys_data/ /var/oasis/keys_data/
 
-COPY ./src/oasis_keys_server/startup.sh  /usr/local/bin/
-RUN chmod +x /usr/local/bin/startup.sh
-
 RUN pip install -r /var/www/oasis/keys_server/requirements.txt
 
 RUN a2dissite 000-default && \
     a2ensite oasis.conf
 EXPOSE 5000
 
-ENTRYPOINT startup.sh; tail -f /var/log/oasis/keys_server.log
+ENTRYPOINT apache2ctl start; tail -f /var/log/oasis/keys_server.log

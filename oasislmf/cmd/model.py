@@ -570,13 +570,14 @@ class CreateOrganisationCmd(OasisBaseCommand):
     def setup_git(self, cc_context, out_path):
         pwd = os.getcwd()
         try:
-            os.chdir(str(out_path))
-            subprocess.check_call(['git', 'init'])
-            subprocess.check_call(['git', 'add', '.'])
-            subprocess.check_call(['git', 'commit', '-m', 'Post-project creation initialisation'])
+            with open(os.devnull, 'w') as devnull:
+                os.chdir(str(out_path))
+                subprocess.check_call(['git', 'init'], stdout=devnull)
+                subprocess.check_call(['git', 'add', '.'], stdout=devnull)
+                subprocess.check_call(['git', 'commit', '-m', 'Post-project creation initialisation'], stdout=devnull)
 
-            subprocess.check_call(['git', 'config', 'user.name', cc_context['project_maintainer']])
-            subprocess.check_call(['git', 'config', 'user.email', cc_context['project_maintainer_email']])
+                subprocess.check_call(['git', 'config', 'user.name', cc_context['project_maintainer']], stdout=devnull)
+                subprocess.check_call(['git', 'config', 'user.email', cc_context['project_maintainer_email']], stdout=devnull)
         finally:
             os.chdir(pwd)
 

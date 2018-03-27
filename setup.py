@@ -229,6 +229,10 @@ setup(
     author_email="Dan Bate <dan.bate@wildfish.com>,Sandeep Murthy <sandeep.murthy@oasislmf.org>",
     keywords='oasis lmf loss modeling framework',
     install_requires=reqs,
+    extra_require={
+        'server': ['flask'],
+        'all': reqs + ['flask']
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',

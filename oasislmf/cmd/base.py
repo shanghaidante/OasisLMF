@@ -1,82 +1,21 @@
-import json
 import logging
-
 import sys
-
-import os
-import io
 
 from argparsetree import BaseCommand
 
-from oasislmf.utils.exceptions import OasisException
 from .cleaners import PathCleaner
+from ..utils.conf import OasisLmfConf
 
 
-class InputValues(object):
+class InputValues(OasisLmfConf):
     """
     Helper class for accessing the input values from either
     the command line or the configuration file.
     """
     def __init__(self, args):
-        self.args = args
+        self.args = dict(args)
 
-        self.config = {}
-        self.config_dir = os.path.dirname(args.config)
-        if os.path.exists(args.config):
-            with io.open(args.config, 'r', encoding='utf-8') as f:
-                self.config = json.load(f)
-
-    def get(self, name, default=None, required=False, is_path=False):
-        """
-        Gets the names parameter from the command line arguments.
-
-        If it is not set on the command line the configuration file
-        is checked.
-
-        If it is also not present in the configuration file then
-        ``default`` is returned unless ``required`` is false in which
-        case an ``OasisException`` is raised.
-
-        :param name: The name of the parameter to lookup
-        :type name: str
-
-        :param default: The default value to return if the name is not
-            found on the command line or in the configuration file.
-
-        :param required: Flag whether the value is required, if so and
-            the parameter is not found on the command line or in the
-            configuration file an error is raised.
-        :type required: bool
-
-        :param is_path: Flag whether the value should be treated as a path,
-            is so the value is processed as relative to the config file.
-        :type is_path: bool
-
-        :raise OasisException: If the value is not found and ``required``
-            is True
-
-        :return: The found value or the default
-        """
-        value = None
-        cmd_value = getattr(self.args, name, None)
-        if cmd_value is not None:
-            value = cmd_value
-        elif name in self.config:
-            value = self.config[name]
-
-        if required and value is None:
-            raise OasisException(
-                '{} could not be found in the command args or config file ({}) but is required'.format(name, self.args.config)
-            )
-
-        if value is None:
-            value = default
-
-        if is_path and value is not None:
-            p = os.path.join(self.config_dir, value)
-            value = os.path.abspath(p) if not os.path.isabs(value) else p
-
-        return value
+        super().__init__(dict(args), args.config)
 
 
 class OasisBaseCommand(BaseCommand):

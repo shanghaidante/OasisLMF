@@ -30,6 +30,6 @@
 		 "module_supplier_id": "{{cookiecutter.organization_slug}}",
 		 "number_of_samples": 10,
 		 "prog_id": 12,
-		 "source_tag": "{{cookiecutter.model_slug}}"
+		 "source_tag": "{{cookiecutter.project_slug}}"
 	}
 }
