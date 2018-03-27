@@ -1,1 +1,1 @@
-{{cookiecutter.organization.replace(' ', '')}},{{cookiecutter.model_identifier.replace(' ', '').upper()}},{{cookiecutter.model_version}}
+{{cookiecutter.organization_slug}},{{cookiecutter.model_identifier}},{{cookiecutter.model_version}}

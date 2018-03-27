@@ -18,15 +18,15 @@ ENV OASIS_LMF_CONFIG_FILE /var/www/oasis/oasislmf.json
 
 COPY ./keys_server/ /var/www/oasis/keys_server/
 
-RUN mkdir /var/oasis/keys_data && \
-    chown www-data:www-data /var/oasis/keys_data && \
-    chmod -R 744 /var/oasis/keys_data
-COPY ./keys_data/ /var/oasis/keys_data/
+RUN mkdir /var/www/oasis/keys_data && \
+    chown www-data:www-data /var/www/oasis/keys_data && \
+    chmod -R 744 /var/www/oasis/keys_data
+COPY ./keys_data/ /var/www/oasis/keys_data/
 
 RUN pip install -r /var/www/oasis/keys_server/requirements.txt
 
 RUN a2dissite 000-default && \
     a2ensite oasis.conf
-EXPOSE 5000
+EXPOSE 80
 
 ENTRYPOINT apache2ctl start; tail -f /var/log/oasis/keys_server.log
