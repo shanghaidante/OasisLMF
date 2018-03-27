@@ -125,7 +125,7 @@ def init():
             {
                 'supplier_id': SUPPLIER,
                 'model_id': MODEL_NAME,
-                'model_version': MODEL_VERSION
+                'model_version_id': MODEL_VERSION
             },
             lookup_class_name=MODEL_CONFIG.get('lookup_class_name')
 
@@ -142,6 +142,8 @@ except Exception as e:
     all_vars_dict.update(locals())
     if all_vars_dict['logger']:
         logger.exception(str(e))
+
+    raise
 
 
 @oasis_log()
