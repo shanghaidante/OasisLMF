@@ -14,6 +14,8 @@ COPY ./keys_server_config/oasis.conf /etc/apache2/sites-available/
 COPY ./keys_server_config/oasis.wsgi /var/www/oasis/
 
 COPY ./oasislmf.json /var/www/oasis/
+ENV OASIS_LMF_CONFIG_FILE /var/www/oasis/oasislmf.json
+
 COPY ./keys_server/ /var/www/oasis/keys_server/
 
 RUN mkdir /var/oasis/keys_data && \

@@ -81,7 +81,7 @@ def init():
     APP = Flask(__name__)
 
     MODEL_CONFIG = OasisLmfConf()
-    KEYS_SERVER_INI_FILE = MODEL_CONFIG.get('keys_server_ini_file')
+    KEYS_SERVER_INI_FILE = MODEL_CONFIG.get('keys_server_ini_file', is_path=True)
 
     # Load INI file into config params dict
     CONFIG_PARSER = load_ini_file(KEYS_SERVER_INI_FILE)
@@ -97,7 +97,7 @@ def init():
     COMPRESS_RESPONSE = bool(CONFIG_PARSER['COMPRESS_RESPONSE'])
 
     # Check that the keys data directory exists
-    KEYS_DATA_DIRECTORY = MODEL_CONFIG.get('keys_data_path')
+    KEYS_DATA_DIRECTORY = MODEL_CONFIG.get('keys_data_path', is_path=True)
     if not os.path.isdir(KEYS_DATA_DIRECTORY):
         raise OasisException("Keys data directory not found: {}.".format(KEYS_DATA_DIRECTORY))
     logger.info('Keys data directory: {}'.format(KEYS_DATA_DIRECTORY))
@@ -120,7 +120,7 @@ def init():
     # Creating the keys lookup instance
     try:
         keys_lookup = OasisKeysLookupFactory.get_lookup_class_instance(
-            MODEL_CONFIG.get('lookup_package_path'),
+            MODEL_CONFIG.get('lookup_package_path', is_path=True),
             KEYS_DATA_DIRECTORY,
             {
                 'supplier_id': SUPPLIER,
