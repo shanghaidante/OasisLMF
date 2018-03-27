@@ -75,7 +75,7 @@ class OasisLmfConf(object):
 
         self.overrides = overrides or {}
         self.config = {}
-        self.config_dir = os.path.dirname(conf_path)
+        self.config_dir = os.path.dirname(self.conf_path)
         if os.path.exists(self.conf_path):
             with io.open(self.conf_path, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
