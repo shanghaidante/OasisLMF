@@ -13,9 +13,7 @@ class InputValues(OasisLmfConf):
     the command line or the configuration file.
     """
     def __init__(self, args):
-        self.args = dict(args)
-
-        super().__init__(dict(args), args.config)
+        super().__init__(args.__dict__, args.config)
 
 
 class OasisBaseCommand(BaseCommand):

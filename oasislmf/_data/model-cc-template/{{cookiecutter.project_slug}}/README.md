@@ -11,32 +11,6 @@ To clone over HTTPS use
 
     git clone --recursive https://github.com/OasisLMF/{{cookiecutter.project_slug.replace(' ', '')}}
 
-## Managing the submodules
-
-There are three submodules - `src/oasis_keys_server` which contains the Flask app that handles the keys requests dispatched to the model lookup services, `src/oasis_utils` which contains various Python utilities used by the Flask app and also the model lookup services, and `oasis_build_utils`, which contains a Bash script and utilities for building keys server Docker images and running them in Docker containers.
-
-Run the command
-
-    git submodule
-
-to list the submodules (latest commit IDs, paths and branches). If any are missing then you can add them using
-
-	git submodule add <submodule GitHub repo URL> <local path/destination>
-
-It is a quirk of Git that the first time you clone a repository with submodules they will be checked out as commits not branches, which is not what you want. You should run the command
-
-    git submodule foreach 'git checkout master'
-
-to ensure that the Oasis submodules are checked out on the `master` branches.
-
-If you've already cloned the repository and wish to update the submodules (all at once) in your working directory from their GitHub repositories then run
-
-    git submodule foreach 'git pull origin'
-
-You can also update the submodules individually by pulling from within them.
-
-You should not make any local changes to these submodules because you have read-only access to these submodules on GitHub and you will not be able push your changes to GitHub. So submodule changes can only propagate from GitHub to your local repository. To detect these changes you can run `git status -uno` and to commit them you can add the paths and commit them in the normal way.
-
 ## Building and running the keys server
 
 First, ensure that you have Docker installed on your system and that your Unix user has been added to the `docker` user group (run `sudo usermod -a -G docker $USER`).
@@ -67,7 +41,7 @@ Run `docker images` to list all images and check the one you've built exists. To
 
 To check the container is running use the command `docker ps`. If you want to run the healthcheck on the keys server then use the command
 
-    curl -s http://<server or localhost>:5000/{{cookiecutter.organization.replace(' ', '')}}/{{cookiecutter.model_identifier.replace(' ', '').upper()}}/{{cookiecutter.model_version}}/healthcheck
+    curl -s http://<server or localhost>:5000/{{cookiecutter.organization_slug}}/{{cookiecutter.model_identifier}}/{{cookiecutter.model_version}}/healthcheck
 
 You should get a response of `OK` if the keys server has initialised and is running normally, otherwise you should get the HTML error response from Apache. To enter the running container you can use the command
 
@@ -77,39 +51,20 @@ The log files to check are `/var/log/apache/error.log` (Apache error log), `/var
 
 ## Testing the keys server
 
-The `./src/oasis_keys_server` submodule contains a set of Python test cases which you can run against a locally running keys server for a defined model. The tests require configuration information which can be found in an INI file `KeysServerTests.ini` located in `./tests/keys_server_tests/data/<model ID>`. If this subfolder and file does not exist then you will have to create it. The file should define some files and keys server properties needed to run the tests.
+To test your keys server you must create sample csv and json exposure files.
+These should be created at `tests/keys_server_tests/data/model_loc_tests.csv`
+and `tests/keys_server_tests/data/model_loc_tests.json` respectively although
+these locations can be changed in `oasislmf.json` or on the command line at
+run time.
 
-    [Default]
+To run the tests make sure the server is running and use:
 
-    MODEL_VERSION_FILE_PATH=/path/to/your/{{cookiecutter.organization.replace(' ', '')}}/tests/keys_server_tests/data/<model ID>/ModelVersion.csv
+```bash
+#> oasislmf test keys-server --host <hostname> --port <port>
+```
 
-    KEYS_DATA_PATH=/path/to/model/lookup/keys/data
+For a full list of options use:
 
-    SAMPLE_CSV_MODEL_EXPOSURES_FILE_PATH=/path/to/your/{{cookiecutter.organization.replace(' ', '')}}/tests/keys_server_tests/data/<model ID>/<model loc. test CSV file>
-
-    SAMPLE_JSON_MODEL_EXPOSURES_FILE_PATH=/path/to/your/{{cookiecutter.organization.replace(' ', '')}}/tests/keys_server_tests/data/<model ID>/<model loc. test JSON file>
-
-    KEYS_SERVER_HOSTNAME_OR_IP=localhost
-
-    KEYS_SERVER_PORT=5000
-
-Make sure the paths exist and the server hostname/IP and port are correct. Then copy the INI file for the model (`./tests/keys_server_tests/data/<model ID>/KeysServerTests.ini`) to `./src/oasis_keys_server/tests` and then run
-
-    python -m unittest -v KeysServerTests
-
-You should see the tests passing
-
-    test_healthcheck (KeysServerTests.KeysServerTests) ... ok
-    test_keys_request_csv (KeysServerTests.KeysServerTests) ... ok
-    test_keys_request_csv__invalid_content_type (KeysServerTests.KeysServerTests) ... ok
-    test_keys_request_json (KeysServerTests.KeysServerTests) ... ok
-    test_keys_request_json__invalid_content_type (KeysServerTests.KeysServerTests) ... ok
-
-    ----------------------------------------------------------------------
-    Ran 5 tests in 0.250s
-
-    OK
-
-To run individual test cases you can use
-
-    python -m unittest -v KeysServerTests.KeysServerTests.<test case name>
+```bash
+#> oasislmf test keys-server --help
+```

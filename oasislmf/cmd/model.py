@@ -473,6 +473,8 @@ class RunCmd(OasisBaseCommand):
 
 class CreateOrganisationCmd(OasisBaseCommand):
     def add_args(self, parser):
+        super().add_args(parser)
+
         parser.add_argument('organization_name', help='The name of the organization to create')
         parser.add_argument('model_name', help='The name of the first model to create')
         parser.add_argument(

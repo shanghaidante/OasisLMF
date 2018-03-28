@@ -15,5 +15,7 @@
     "canonical_to_model_exposures_transformation_file_path": "<my_model_to_canoniical_file>",
     {% endif %}"analysis_settings_json_file_path": "analysis_settings.json",
     "model_data_path": "model_data",
-    "keys_server_ini_file": "keys_server/KeysServer.ini"
+    "keys_server_ini_file": "keys_server/KeysServer.ini",
+    "sample_csv_model_exposures_file_path": "tests/keys_server_tests/data/model_loc_test.csv",
+    "sample_json_model_exposures_file_path": "tests/keys_server_tests/data/model_loc_test.json"
 }

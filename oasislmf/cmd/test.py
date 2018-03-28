@@ -1,21 +1,24 @@
+import csv
 import json
 import os
 import io
+import unittest
 
 from collections import Counter
 from multiprocessing.pool import ThreadPool
 
+import requests
 import six
-from argparsetree import BaseCommand
 from backports.tempfile import TemporaryDirectory
 
-from oasislmf.keys.lookup import OasisKeysLookupFactory
 from .. import __version__
+from ..keys.lookup import OasisKeysLookupFactory
+from ..utils.http import HTTP_REQUEST_CONTENT_TYPE_JSON, HTTP_REQUEST_CONTENT_TYPE_CSV
 from ..utils.exceptions import OasisException
 from ..utils.conf import replace_in_file
 from ..api_client.client import OasisAPIClient
-from .base import OasisBaseCommand
-from .cleaners import PathCleaner
+from .base import OasisBaseCommand, InputValues
+from .cleaners import PathCleaner, as_path
 
 
 class TestModelApiCmd(OasisBaseCommand):
@@ -233,12 +236,211 @@ class GenerateModelTesterDockerFileCmd(OasisBaseCommand):
         return 0
 
 
-class TestCmd(BaseCommand):
+class KeysServerTests(unittest.TestCase):
+    def test_healthcheck(self):
+
+        healthcheck_url = '{}/healthcheck'.format(self.keys_server_baseurl)
+        res = requests.get(healthcheck_url)
+
+        # Check that the response has a 200 status code
+        self.assertEqual(res.status_code, 200)
+
+        # Check that the healthcheck returned the 'OK' string
+        msg = res.content.strip()
+        self.assertEqual(msg, b'OK')
+
+    def test_keys_request_csv(self):
+
+        data = None
+        with io.open(self.sample_csv_model_exposures_file_path, 'r', encoding='utf-8') as f:
+            data = f.read()
+
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Type': HTTP_REQUEST_CONTENT_TYPE_CSV,
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response has a 200 status code
+        self.assertEqual(res.status_code, 200)
+
+        # Check that the response content is valid JSON and has valid content.
+        result_dict = None
+        try:
+            result_dict = json.loads(res.content)
+        except ValueError:
+            self.assertIsNotNone(result_dict)
+        else:
+            self.assertEquals(set(result_dict.keys()), {'status', 'items'})
+
+            self.assertIsInstance(type(result_dict['status']), six.string_types)
+
+            self.assertEquals(result_dict['status'].lower(), 'success')
+
+            self.assertEquals(type(result_dict['items']), list)
+
+            lookup_record_keys = {'id', 'peril_id', 'coverage', 'area_peril_id', 'vulnerability_id', 'status',
+                                  'message'}
+
+            self.assertEquals(
+                all(
+                    type(r) == dict and set(r.keys()) == lookup_record_keys for r in result_dict['items']
+                ),
+                True
+            )
+
+    def test_keys_request_csv__invalid_content_type(self):
+
+        data = None
+        with io.open(self.sample_csv_model_exposures_file_path, 'r', encoding='utf-8') as f:
+            data = f.read()
+
+        # test for unrecognised content type header
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Type': 'text/html; charset=utf-8',
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response does not have a 200 status code
+        self.assertNotEqual(res.status_code, 200)
+
+        # test for missing content type header
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response does not have a 200 status code
+        self.assertNotEqual(res.status_code, 200)
+
+    def test_keys_request_json(self):
+
+        data = None
+        with io.open(self.sample_json_model_exposures_file_path, 'r', encoding='utf-8') as f:
+            data = f.read()
+
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Type': HTTP_REQUEST_CONTENT_TYPE_JSON,
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response has a 200 status code
+        self.assertEqual(res.status_code, 200)
+
+        # Check that the response content is valid JSON and has valid content.
+        result_dict = None
+        try:
+            result_dict = json.loads(res.content)
+        except ValueError:
+            self.assertIsNotNone(result_dict)
+        else:
+            self.assertEquals(set(result_dict.keys()), {'status', 'items'})
+
+            self.assertIsInstance(result_dict['status'], six.string_types)
+
+            self.assertEquals(result_dict['status'].lower(), 'success')
+
+            self.assertEquals(type(result_dict['items']), list)
+
+            lookup_record_keys = {'id', 'peril_id', 'coverage', 'area_peril_id', 'vulnerability_id', 'status',
+                                  'message'}
+
+            self.assertEquals(
+                all(
+                    type(r) == dict and set(r.keys()) == lookup_record_keys for r in result_dict['items']
+                ),
+                True
+            )
+
+    def test_keys_request_json__invalid_content_type(self):
+
+        data = None
+        with io.open(self.sample_json_model_exposures_file_path, 'r', encoding='utf-8') as f:
+            data = f.read()
+
+        # test for unrecognised content type header
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Type': 'text/html; charset=utf-8',
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response does not have a 200 status code
+        self.assertNotEqual(res.status_code, 200)
+
+        # test for missing content type header
+        headers = {
+            'Accept-Encoding': 'identity,deflate,gzip,compress',
+            'Content-Length': str(len(data))
+        }
+
+        get_keys_url = '{}/get_keys'.format(self.keys_server_baseurl)
+        res = requests.post(get_keys_url, headers=headers, data=data)
+
+        # Check that the response does not have a 200 status code
+        self.assertNotEqual(res.status_code, 200)
+
+
+class TestKeysServerCmd(OasisBaseCommand):
+    def add_args(self, parser):
+        super().add_args(parser)
+
+        parser.add_argument('-H', '--host', default='localhost', help='The host the keys server is running on.')
+        parser.add_argument('-p', '--port', default='5000', help='The host the keys server is running at.')
+        parser.add_argument('-v', '--model-version-file-path', default=None, help='Model version file path')
+        parser.add_argument('-j', '--sample-json-model-exposures-file-path', default=None, help='The json exposures file path to use')
+        parser.add_argument('-c', '--sample-csv-model-exposures-file-path', default=None, help='The csv exposures file path to use')
+
+    def action(self, args):
+        inputs = InputValues(args)
+
+        model_version_file_path = as_path(inputs.get('model_version_file_path', required=True, is_path=True), 'Model version file')
+        sample_json_model_exposures_file_path = as_path(inputs.get('sample_json_model_exposures_file_path', required=True, is_path=True), 'Sample json model exposures file')
+        sample_csv_model_exposures_file_path = as_path(inputs.get('sample_csv_model_exposures_file_path', required=True, is_path=True), 'Sample json model exposures file')
+
+        with io.open(model_version_file_path, 'r', encoding='utf-8') as f:
+            supplier_id, model_id, model_version = map(lambda s: s.strip(), next(csv.reader(f)))
+
+        KeysServerTests.keys_server_baseurl = 'http://{}:{}/{}/{}/{}'.format(
+            args.host,
+            args.port,
+            supplier_id,
+            model_id,
+            model_version
+        )
+        KeysServerTests.sample_json_model_exposures_file_path = sample_json_model_exposures_file_path
+        KeysServerTests.sample_csv_model_exposures_file_path = sample_csv_model_exposures_file_path
+
+        suite = unittest.TestSuite(
+            tests=[unittest.defaultTestLoader.loadTestsFromTestCase(KeysServerTests)]
+        )
+        unittest.TextTestRunner().run(suite)
+
+
+class TestCmd(OasisBaseCommand):
     """
     Test models and keys servers
     """
 
     sub_commands = {
         'model-api': TestModelApiCmd,
+        'keys-server': TestKeysServerCmd,
         'gen-model-tester-dockerfile': GenerateModelTesterDockerFileCmd,
     }
