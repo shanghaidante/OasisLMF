@@ -220,6 +220,7 @@ class OasisKeysLookupFactory(object):
         model_keys_data_path=None,
         model_version_file_path=None,
         lookup_package_path=None,
+        lookup_class_name='KeysLookup'
     ):
         """
         Creates a keys lookup class instance for the given model and supplier -
@@ -240,7 +241,7 @@ class OasisKeysLookupFactory(object):
 
         model_info = cls.get_model_info(model_version_file_path)
         lookup_package = cls.get_lookup_package(lookup_package_path)
-        klc = cls.get_lookup_class_instance(lookup_package, model_keys_data_path, model_info)
+        klc = cls.get_lookup_class_instance(lookup_package, model_keys_data_path, model_info, lookup_class_name=lookup_class_name)
         return model_info, klc
 
     @classmethod

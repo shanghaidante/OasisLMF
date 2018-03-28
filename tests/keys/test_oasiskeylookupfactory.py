@@ -48,6 +48,7 @@ class OasisKeysLookupFactoryCreate(TestCase):
             _, instance = OasisKeysLookupFactory.create(
                 model_version_file_path=version_path,
                 lookup_package_path=module_path,
+                lookup_class_name='{}KeysLookup'.format(model),
             )
 
             self.assertEqual(type(instance).__name__, '{}KeysLookup'.format(model))
@@ -74,6 +75,7 @@ class OasisKeysLookupFactoryCreate(TestCase):
                 model_keys_data_path=keys_path,
                 model_version_file_path=version_path,
                 lookup_package_path=module_path,
+                lookup_class_name='{}KeysLookup'.format(model),
             )
 
             self.assertEqual(type(instance).__name__, '{}KeysLookup'.format(model))
