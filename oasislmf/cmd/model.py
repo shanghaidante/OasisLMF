@@ -471,11 +471,11 @@ class RunCmd(OasisBaseCommand):
         gen_losses_cmd.action(args)
 
 
-class CreateOrganisationCmd(OasisBaseCommand):
+
+class BaseCookiecutterCommand(OasisBaseCommand):
     def add_args(self, parser):
         super().add_args(parser)
 
-        parser.add_argument('organization_name', help='The name of the organization to create')
         parser.add_argument('model_name', help='The name of the first model to create')
         parser.add_argument(
             '--organization-slug', default=None,
@@ -569,6 +569,13 @@ class CreateOrganisationCmd(OasisBaseCommand):
 
         return context['cookiecutter']
 
+
+class CreateOrganisationCmd(BaseCookiecutterCommand):
+    def add_args(self, parser):
+        parser.add_argument('organization_name', help='The name of the organization to create')
+
+        super().add_args(parser)
+
     def setup_git(self, cc_context, out_path):
         pwd = os.getcwd()
         try:
@@ -595,6 +602,28 @@ class CreateOrganisationCmd(OasisBaseCommand):
         self.setup_git(cc_context, organization_path)
 
 
+class AddModelCmd(BaseCookiecutterCommand):
+    def add_args(self, parser):
+        super().add_args(parser)
+
+        parser.add_argument('-o-', '--organization-path', type=PathCleaner('Organization path', preexists=True), default='.')
+
+    def setup_git(self, cc_context, out_path):
+        pwd = os.getcwd()
+        try:
+            with open(os.devnull, 'w') as devnull:
+                os.chdir(str(out_path))
+                subprocess.check_call(['git', 'add', '.'], stdout=devnull)
+                subprocess.check_call(['git', 'commit', '-m', 'Added {}'.format(cc_context['project_name'])], stdout=devnull)
+        finally:
+            os.chdir(pwd)
+
+    def action(self, args):
+        args.organization_name = Path(args.organization_path).name
+        cc_context = self.run_cookiecutter(args, args.organization_path)
+        self.setup_git(cc_context, args.organization_path)
+
+
 class ModelsCmd(OasisBaseCommand):
     sub_commands = {
         'generate-keys': GenerateKeysCmd,
@@ -602,4 +631,5 @@ class ModelsCmd(OasisBaseCommand):
         'generate-losses': GenerateLossesCmd,
         'run': RunCmd,
         'create-organization': CreateOrganisationCmd,
+        'add-model': AddModelCmd,
     }
