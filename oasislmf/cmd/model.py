@@ -474,7 +474,7 @@ class RunCmd(OasisBaseCommand):
 
 class BaseCookiecutterCommand(OasisBaseCommand):
     def add_args(self, parser):
-        super().add_args(parser)
+        super(BaseCookiecutterCommand, self).add_args(parser)
 
         parser.add_argument('model_name', help='The name of the first model to create')
         parser.add_argument(
@@ -574,7 +574,7 @@ class CreateOrganisationCmd(BaseCookiecutterCommand):
     def add_args(self, parser):
         parser.add_argument('organization_name', help='The name of the organization to create')
 
-        super().add_args(parser)
+        super(CreateOrganisationCmd, self).add_args(parser)
 
     def setup_git(self, cc_context, out_path):
         pwd = os.getcwd()
@@ -604,7 +604,7 @@ class CreateOrganisationCmd(BaseCookiecutterCommand):
 
 class AddModelCmd(BaseCookiecutterCommand):
     def add_args(self, parser):
-        super().add_args(parser)
+        super(AddModelCmd, self).add_args(parser)
 
         parser.add_argument('-o-', '--organization-path', type=PathCleaner('Organization path', preexists=True), default='.')
 

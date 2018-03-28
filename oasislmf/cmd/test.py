@@ -400,7 +400,7 @@ class KeysServerTests(unittest.TestCase):
 
 class TestKeysServerCmd(OasisBaseCommand):
     def add_args(self, parser):
-        super().add_args(parser)
+        super(TestKeysServerCmd, self).add_args(parser)
 
         parser.add_argument('-H', '--host', default='localhost', help='The host the keys server is running on.')
         parser.add_argument('-p', '--port', default='5000', help='The host the keys server is running at.')
