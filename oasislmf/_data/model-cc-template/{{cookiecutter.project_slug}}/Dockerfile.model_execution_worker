@@ -1,9 +1,10 @@
-FROM coreoasis/model_execution_worker:OASIS_0_0_0_167
+FROM coreoasis/model_execution_worker
 
-COPY ./model_execution_worker/ ./model_execution_worker/
 COPY ./model_data/ /var/oasis/model_data/
 RUN touch /var/log/oasis/celery_worker.log
 RUN chmod 666 /var/log/oasis/celery_worker.log
 
-ENTRYPOINT
-# Define entry points here
+ENTRYPOINT ./utils/wait-for-it.sh "mysql:$MYSQL_PORT" -t 60 && \
+    ./utils/wait-for-it.sh "rabbit:$RABBIT_PORT" -t 60 && \
+    ./startup.sh && \
+    tail -f /var/log/oasis/worker.log
