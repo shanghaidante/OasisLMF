@@ -1374,6 +1374,84 @@ class OasisExposuresManagerLoadFmItems(TestCase):
         exposures=canonical_exposures_data(
             from_accounts_nums=just(10101),
             from_tivs1=just(100),
+            from_limits1=just(1),
+            from_deductibles1=just(1),
+            size=10
+        ),
+        accounts=canonical_accounts_data(
+            from_attachment_points=floats(min_value=1, allow_infinity=False),
+            from_blanket_deductibles=just(0),
+            from_blanket_limits=just(0.1),
+            from_layer_limits=floats(min_value=1, allow_infinity=False),
+            from_policy_types=just(1),
+            size=2
+        ),
+        guls=gul_items_data(
+            from_coverage_type_ids=just(BUILDING_COVERAGE_CODE),
+            from_tiv_elements=just('wscv1val'),
+            from_tivs=just(100),
+            from_tiv_tgids=just(1),
+            from_limit_elements=just('wscv1limit'),
+            from_deductible_elements=just('wscv1ded'),
+            from_share_elements=just(None),
+            size=10
+        )
+    )
+    def test_preset_fm_items_with_two_accounts_and_one_top_level_layer_per_account__returns_preset_data_only(
+        self,
+        exposures,
+        accounts,
+        guls
+    ):
+        cep = copy.deepcopy(self.exposures_profile)
+        cap = copy.deepcopy(self.accounts_profile)
+        fmap = copy.deepcopy(self.fm_agg_profile)
+        cgcp = copy.deepcopy(self.combined_grouped_canonical_profile)
+
+    @settings(deadline=None, suppress_health_check=[HealthCheck.too_slow])
+    @given(
+        exposures=canonical_exposures_data(
+            from_accounts_nums=just(10101),
+            from_tivs1=just(100),
+            from_limits1=just(1),
+            from_deductibles1=just(1),
+            size=10
+        ),
+        accounts=canonical_accounts_data(
+            from_attachment_points=floats(min_value=1, allow_infinity=False),
+            from_blanket_deductibles=just(0),
+            from_blanket_limits=just(0.1),
+            from_layer_limits=floats(min_value=1, allow_infinity=False),
+            from_policy_types=just(1),
+            size=2
+        ),
+        guls=gul_items_data(
+            from_coverage_type_ids=just(BUILDING_COVERAGE_CODE),
+            from_tiv_elements=just('wscv1val'),
+            from_tivs=just(100),
+            from_tiv_tgids=just(1),
+            from_limit_elements=just('wscv1limit'),
+            from_deductible_elements=just('wscv1ded'),
+            from_share_elements=just(None),
+            size=10
+        )
+    )
+    def test_preset_fm_items_with_two_accounts_and_two_top_level_layers_per_account__returns_preset_data_only(
+        self,
+        exposures,
+        accounts,
+        guls
+    ):
+        cep = copy.deepcopy(self.exposures_profile)
+        cap = copy.deepcopy(self.accounts_profile)
+        fmap = copy.deepcopy(self.fm_agg_profile)
+        cgcp = copy.deepcopy(self.combined_grouped_canonical_profile)
+
+    @settings(deadline=None, suppress_health_check=[HealthCheck.too_slow])
+    @given(
+        exposures=canonical_exposures_data(
+            from_accounts_nums=just(10101),
+            from_tivs1=just(100),
             from_tivs2=just(0),
             from_limits1=just(1),
             from_limits2=just(0),
@@ -1621,6 +1699,92 @@ class OasisExposuresManagerLoadFmItems(TestCase):
             
             shr = can_it.get(gul_it['shr_elm']  if l == 1 else (cgcp[l][1]['share']['ProfileElementName'].lower() if cgcp[l][1].get('share') else None)) or 0.0
             self.assertEquals(it['share'], shr)
+
+    @settings(deadline=None, suppress_health_check=[HealthCheck.too_slow])
+    @given(
+        exposures=canonical_exposures_data(
+            from_accounts_nums=just(10101),
+            from_tivs1=just(100),
+            from_tivs2=just(0),
+            from_limits1=just(1),
+            from_limits2=just(0),
+            from_deductibles1=just(1),
+            from_deductibles2=just(0),
+            size=10
+        ),
+        accounts=canonical_accounts_data(
+            from_attachment_points=just(1),
+            from_blanket_deductibles=just(1),
+            from_blanket_limits=just(1),
+            from_layer_limits=just(1),
+            from_policy_types=just(1),
+            size=1
+        ),
+        guls=gul_items_data(
+            from_coverage_type_ids=just(BUILDING_COVERAGE_CODE),
+            from_tiv_elements=just('wscv1val'),
+            from_tivs=just(100),
+            from_tiv_tgids=just(1),
+            from_limit_elements=just('wscv1limit'),
+            from_deductible_elements=just('wscv1ded'),
+            from_share_elements=just(None),
+            size=10
+        )
+    )
+    def test_two_accounts_and_one_top_level_layer__all_fm_terms_present(
+        self,
+        exposures,
+        accounts,
+        guls
+    ):
+
+        cep = copy.deepcopy(self.exposures_profile)
+        cap = copy.deepcopy(self.accounts_profile)
+        fmap = copy.deepcopy(self.fm_agg_profile)
+        cgcp = copy.deepcopy(self.combined_grouped_canonical_profile)
+
+    @settings(deadline=None, suppress_health_check=[HealthCheck.too_slow])
+    @given(
+        exposures=canonical_exposures_data(
+            from_accounts_nums=just(10101),
+            from_tivs1=just(100),
+            from_tivs2=just(0),
+            from_limits1=just(1),
+            from_limits2=just(0),
+            from_deductibles1=just(1),
+            from_deductibles2=just(0),
+            size=10
+        ),
+        accounts=canonical_accounts_data(
+            from_attachment_points=just(1),
+            from_blanket_deductibles=just(1),
+            from_blanket_limits=just(1),
+            from_layer_limits=just(1),
+            from_policy_types=just(1),
+            size=1
+        ),
+        guls=gul_items_data(
+            from_coverage_type_ids=just(BUILDING_COVERAGE_CODE),
+            from_tiv_elements=just('wscv1val'),
+            from_tivs=just(100),
+            from_tiv_tgids=just(1),
+            from_limit_elements=just('wscv1limit'),
+            from_deductible_elements=just('wscv1ded'),
+            from_share_elements=just(None),
+            size=10
+        )
+    )
+    def test_two_accounts_and_two_top_level_layers__all_fm_terms_present(
+        self,
+        exposures,
+        accounts,
+        guls
+    ):
+
+        cep = copy.deepcopy(self.exposures_profile)
+        cap = copy.deepcopy(self.accounts_profile)
+        fmap = copy.deepcopy(self.fm_agg_profile)
+        cgcp = copy.deepcopy(self.combined_grouped_canonical_profile)
 
 
 class GulFilesGenerationTestCase(TestCase):
